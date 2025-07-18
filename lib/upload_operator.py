@@ -18,47 +18,53 @@
 
 # SPDX-License-Identifier: MIT
 
-if "bpy" in locals():
-    # Imports have run before. Need to reload the imported modules
-    import importlib
+import importlib
+import logging
+import traceback
 
-    if "get_selected_objects" in locals():
-        importlib.reload(get_selected_objects)
-    if "upload_blocking_issues" in locals():
-        importlib.reload(upload_blocking_issues)
-    if "creator_details" in locals():
-        importlib.reload(creator_details)
-    if "status_indicators" in locals():
-        importlib.reload(status_indicators)
-    if "export_fbx" in locals():
-        importlib.reload(export_fbx)
-    if "get_add_on_preferences" in locals():
-        importlib.reload(get_add_on_preferences)
-    if "RbxOAuth2Client" in locals():
-        importlib.reload(RbxOAuth2Client)
-    if "str_to_int" in locals():
-        importlib.reload(str_to_int)
-    if "constants" in locals():
-        importlib.reload(constants)
-    if "AssetsUploadClient" in locals():
-        importlib.reload(AssetsUploadClient)
-    if "AssetsCreator" in locals():
-        importlib.reload(AssetsCreator)
-    if "AssetType" in locals():
-        importlib.reload(AssetType)
-    if "openapi_client" in locals():
-        importlib.reload(openapi_client)
-    if "aiolimiter" in locals():
-        importlib.reload(aiolimiter)
-    if "extract_exception_message" in locals():
-        importlib.reload(extract_exception_message)
-    if "event_loop" in locals():
-        importlib.reload(event_loop)
+logger = logging.getLogger(__name__)
+
+MODULES_TO_RELOAD = (
+    "get_selected_objects",
+    "upload_blocking_issues",
+    "creator_details",
+    "status_indicators",
+    "export_fbx",
+    "get_add_on_preferences",
+    "RbxOAuth2Client",
+    "str_to_int",
+    "constants",
+    "AssetsUploadClient",
+    "AssetsCreator",
+    "AssetType",
+    "openapi_client",
+    "aiolimiter",
+    "extract_exception_message",
+    "event_loop",
+)
+
+
+def reload_modules(module_names: tuple) -> None:
+    """Safely reload specified modules with logging."""
+
+    for name in module_names:
+        module = globals().get(name)
+        if module is None:
+            continue
+
+        try:
+            importlib.reload(module)
+            logger.debug("Successfully reloaded: %s", name)
+        except Exception as e:  # pragma: no cover - best effort
+            logger.warning("Failed to reload %s: %s", name, e, exc_info=True)
+
+
+if "bpy" in locals():
+    reload_modules(MODULES_TO_RELOAD)
 
 import bpy
 from bpy.types import Operator
 
-import traceback
 from tempfile import TemporaryDirectory
 from pathlib import Path
 
