@@ -41,21 +41,10 @@ import bpy
 from time import time
 import json
 import urllib
-import ssl
 
 # To avoid making a request with an expired token,
 # we always refresh up to this many seconds before the token expires
 REFRESH_SECONDS_BEFORE_EXPIRY = 30
-
-
-# TODO: Replace with async implementation, move to more sensible location
-def fetch_data_custom_ssl_context(self):
-    import certifi
-
-    context = ssl.create_default_context(cafile=certifi.where())
-
-    with urllib.request.urlopen(self.uri, context=context) as response:
-        return json.load(response)
 
 
 async def request_login_details(token_data):
