@@ -34,6 +34,7 @@ import subprocess
 import os
 import ensurepip
 from pathlib import Path
+import shutil
 import traceback
 import asyncio
 
@@ -63,7 +64,7 @@ class RBX_OT_install_dependencies(Operator):
                 rbx.is_finished_installing_dependencies = True
                 rbx.needs_restart = True
             except Exception as exception:
-                dependencies_public_directory.rmdir()
+                shutil.rmtree(dependencies_public_directory, ignore_errors=True)
                 traceback.print_exception(exception)
 
         rbx.is_installing_dependencies = True
