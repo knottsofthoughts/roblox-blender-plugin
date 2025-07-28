@@ -20,9 +20,14 @@
 
 
 def str_to_int(string, *, default=None):
-    """Returns the integer value of the string if the string is numeric,
-    otherwise returns default"""
+    """Return ``int(string)`` if possible, otherwise ``default``.
+
+    Any ``TypeError`` or ``ValueError`` raised during conversion
+    results in ``default`` being returned instead of propagating an
+    exception.
+    """
+
     try:
         return int(string)
-    except TypeError:
+    except (TypeError, ValueError):
         return default
