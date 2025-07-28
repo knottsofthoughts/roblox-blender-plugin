@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>VideoFX Editor Suite</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+      color: #ffffff;
+      min-height: 100vh;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      grid-template-rows: 60px 1fr 250px;
+      height: 100vh;
+    }
+
+    .header {
+      grid-column: 1 / -1;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-bottom: 2px solid #16213e;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar {
+      background: #16213e;
+      padding: 20px;
+      overflow-y: auto;
+      border-right: 2px solid #1a1a2e;
+    }
+
+    .main-area {
+      background: #0f0f23;
+      display: flex;
+      flex-direction: column;
+      grid-row: 2;
+      grid-column: 2;
+    }
+
+    .timeline-section {
+      grid-row: 3;
+      grid-column: 1 / -1;
+      background: #16213e;
+      border-top: 2px solid #1a1a2e;
+    }
+
+    .upload-section {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .upload-box {
+      background: #1a1a2e;
+      border: 3px dashed #4ecdc4;
+      border-radius: 15px;
+      padding: 60px 40px;
+      text-align: center;
+      width: 100%;
+      max-width: 600px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .upload-box:hover {
+      border-color: #ff6b6b;
+      background: #2a2a3e;
+      transform: scale(1.02);
+    }
+
+    .upload-box h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #4ecdc4;
+    }
+
+    .upload-box p {
+      font-size: 18px;
+      margin-bottom: 30px;
+      color: #b0b0b0;
+    }
+
+    .upload-btn {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border: none;
+      border-radius: 10px;
+      padding: 15px 40px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .upload-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .video-section {
+      display: none;
+      flex: 1;
+      padding: 20px;
+    }
+
+    .video-container {
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .video-player {
+      width: 100%;
+      height: auto;
+      display: block;
+      max-height: 70vh;
+    }
+
+    .controls {
+      background: #1a1a2e;
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 180px;
+    }
+
+    .control-group label {
+      font-size: 13px;
+      color: #b0b0b0;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .value-display {
+      color: #4ecdc4;
+      font-weight: bold;
+      font-size: 13px;
+      background: rgba(78, 205, 196, 0.2);
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #2d2d44;
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      cursor: pointer;
+      border: none;
+    }
+
+    .panel {
+      background: #1a1a2e;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .panel h3 {
+      color: #4ecdc4;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .effects-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .effect-btn {
+      background: #2d2d44;
+      border: 2px solid #3d3d54;
+      border-radius: 8px;
+      color: white;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .effect-btn:hover {
+      border-color: #4ecdc4;
+      background: #3d3d54;
+    }
+
+    .effect-btn.active {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border-color: transparent;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      padding: 12px 24px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn.export {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 15px;
+      font-size: 16px;
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(45deg, #4ecdc4, #44a08d);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      font-size: 16px;
+      max-width: 350px;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.error {
+      background: linear-gradient(45deg, #ff6b6b, #ff5252);
+    }
+
+    .status {
+      background: #1a1a2e;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border-left: 4px solid #4ecdc4;
+    }
+
+    .status h4 {
+      color: #4ecdc4;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .status p {
+      color: #b0b0b0;
+      font-size: 14px;
+    }
+
+    .loading {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.95);
+      padding: 40px;
+      border-radius: 15px;
+      text-align: center;
+      z-index: 1000;
+      border: 2px solid #4ecdc4;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #2d2d44;
+      border-top: 5px solid #4ecdc4;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .enhancement-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .enhancement-btn {
+      background: #2d2d44;
+      border: 1px solid #3d3d54;
+      border-radius: 6px;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .enhancement-btn:hover {
+      border-color: #4ecdc4;
+      background: #3d3d54;
+    }
+
+    .audio-controls {
+      margin-top: 15px;
+    }
+
+    .audio-controls input[type="file"] {
+      display: none;
+    }
+
+    .audio-controls .btn {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    /* Timeline Styles */
+    .timeline-section {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .timeline-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      background: #1a1a2e;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .timeline-controls h3 {
+      color: #4ecdc4;
+      margin: 0;
+    }
+
+    .timeline-tools {
+      display: flex;
+      gap: 10px;
+    }
+
+    .timeline-btn {
+      background: #2d2d44;
+      border: 1px solid #3d3d54;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .timeline-btn:hover {
+      background: #3d3d54;
+      border-color: #4ecdc4;
+    }
+
+    .timeline-btn.active {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border-color: transparent;
+    }
+
+    .timeline-container {
+      flex: 1;
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .timeline-header {
+      background: #2d2d44;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #3d3d54;
+    }
+
+    .timeline-time {
+      font-family: monospace;
+      color: #4ecdc4;
+      font-size: 14px;
+    }
+
+    .timeline-zoom {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .timeline-tracks {
+      height: 120px;
+      overflow-y: auto;
+    }
+
+    .timeline-track {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #2d2d44;
+      position: relative;
+    }
+
+    .track-label {
+      width: 100px;
+      padding: 0 15px;
+      background: #2d2d44;
+      color: #b0b0b0;
+      font-size: 12px;
+      font-weight: bold;
+      border-right: 1px solid #3d3d54;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .track-content {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      background: #1a1a2e;
+    }
+
+    .track-clip {
+      position: absolute;
+      height: 28px;
+      top: 6px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 11px;
+      cursor: move;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .track-clip:hover {
+      border-color: #4ecdc4;
+    }
+
+    .track-clip.selected {
+      border-color: #ff6b6b;
+      box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+    }
+
+    .video-clip {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+    }
+
+    .audio-clip {
+      background: linear-gradient(45deg, #4ecdc4, #44a08d);
+      color: white;
+    }
+
+    .music-clip {
+      background: linear-gradient(45deg, #ff6b6b, #ff5252);
+      color: white;
+    }
+
+    .timeline-ruler {
+      height: 30px;
+      background: #2d2d44;
+      border-bottom: 1px solid #3d3d54;
+      position: relative;
+      margin-bottom: 5px;
+    }
+
+    .ruler-marker {
+      position: absolute;
+      height: 100%;
+      width: 1px;
+      background: #4ecdc4;
+      top: 0;
+    }
+
+    .ruler-time {
+      position: absolute;
+      top: 5px;
+      font-size: 10px;
+      color: #b0b0b0;
+      transform: translateX(-50%);
+    }
+
+    .playhead {
+      position: absolute;
+      width: 2px;
+      height: 100%;
+      background: #ff6b6b;
+      top: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .playhead::before {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: -6px;
+      width: 14px;
+      height: 14px;
+      background: #ff6b6b;
+      border-radius: 50%;
+    }
+
+    /* Enhanced Controls */
+    .enhanced-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .control-btn {
+      background: #2d2d44;
+      border: 2px solid #3d3d54;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .control-btn:hover {
+      background: #3d3d54;
+      border-color: #4ecdc4;
+    }
+
+    .control-btn.active {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border-color: transparent;
+    }
+
+    .record-btn {
+      background: linear-gradient(45deg, #ff4757, #ff3838);
+    }
+
+    .record-btn.recording {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Cut markers */
+    .cut-marker {
+      position: absolute;
+      width: 2px;
+      height: 100%;
+      background: #ffff00;
+      top: 0;
+      cursor: ew-resize;
+      z-index: 5;
+    }
+
+    .cut-marker::before {
+      content: '✂';
+      position: absolute;
+      top: -20px;
+      left: -8px;
+      color: #ffff00;
+      font-size: 16px;
+    }
+
+    /* Loop indicator */
+    .loop-region {
+      position: absolute;
+      height: 100%;
+      background: rgba(78, 205, 196, 0.2);
+      border: 2px solid #4ecdc4;
+      border-radius: 4px;
+      top: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">🎬 VideoFX Editor Suite</div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="status" id="status">
+        <h4>Status</h4>
+        <p id="statusText">Ready to upload video</p>
+      </div>
+
+      <!-- Video Controls Panel -->
+      <div class="panel" id="videoControls">
+        <h3>Video Controls</h3>
+        <div class="control-group">
+          <label>Speed <span class="value-display" id="speedValue">1.0x</span></label>
+          <input type="range" class="slider" id="speedSlider" min="0.25" max="4" step="0.25" value="1">
+        </div>
+        <div class="control-group">
+          <label>Rotation <span class="value-display" id="rotationValue">0°</span></label>
+          <input type="range" class="slider" id="rotationSlider" min="0" max="360" value="0">
+        </div>
+        <div class="control-group">
+          <label>Zoom <span class="value-display" id="zoomValue">100%</span></label>
+          <input type="range" class="slider" id="zoomSlider" min="0.5" max="3" step="0.1" value="1">
+        </div>
+        
+        <div class="enhanced-controls">
+          <button class="control-btn" id="slowMotionBtn">🐌 Slow Motion</button>
+          <button class="control-btn" id="loopBtn">🔁 Loop</button>
+          <button class="control-btn record-btn" id="recordBtn">🔴 Record</button>
+          <button class="control-btn" id="rewindBtn">⏪ Rewind</button>
+          <button class="control-btn" id="fastForwardBtn">⏩ Fast Forward</button>
+          <button class="control-btn" id="frameStepBtn">⏭ Frame Step</button>
+        </div>
+      </div>
+
+      <!-- Effects Panel -->
+      <div class="panel" id="effectsPanel">
+        <h3>Visual Effects</h3>
+        <div class="effects-grid">
+          <button class="effect-btn" data-effect="blur">Blur</button>
+          <button class="effect-btn" data-effect="grayscale">B&W</button>
+          <button class="effect-btn" data-effect="sepia">Sepia</button>
+          <button class="effect-btn" data-effect="invert">Invert</button>
+          <button class="effect-btn" data-effect="vintage">Vintage</button>
+          <button class="effect-btn" data-effect="glow">Glow</button>
+        </div>
+      </div>
+
+      <!-- Adjustments Panel -->
+      <div class="panel" id="adjustmentsPanel">
+        <h3>Adjustments</h3>
+        <div class="control-group">
+          <label>Brightness <span class="value-display" id="brightnessValue">0</span></label>
+          <input type="range" class="slider" id="brightnessSlider" min="-100" max="100" value="0">
+        </div>
+        <div class="control-group">
+          <label>Contrast <span class="value-display" id="contrastValue">0</span></label>
+          <input type="range" class="slider" id="contrastSlider" min="-100" max="100" value="0">
+        </div>
+        <div class="control-group">
+          <label>Saturation <span class="value-display" id="saturationValue">0</span></label>
+          <input type="range" class="slider" id="saturationSlider" min="-100" max="100" value="0">
+        </div>
+        <div class="control-group">
+          <label>Hue <span class="value-display" id="hueValue">0°</span></label>
+          <input type="range" class="slider" id="hueSlider" min="-180" max="180" value="0">
+        </div>
+      </div>
+
+      <!-- Enhancement Panel -->
+      <div class="panel" id="enhancementPanel">
+        <h3>Enhancement</h3>
+        <div class="enhancement-grid">
+          <button class="enhancement-btn" data-enhancement="stabilize">🎬 Stabilize</button>
+          <button class="enhancement-btn" data-enhancement="denoise">🔇 Denoise</button>
+          <button class="enhancement-btn" data-enhancement="dehaze">☀️ Dehaze</button>
+          <button class="enhancement-btn" data-enhancement="upscale">✨ HD Upscale</button>
+        </div>
+      </div>
+
+      <!-- Audio Panel -->
+      <div class="panel" id="audioPanel">
+        <h3>Audio Controls</h3>
+        <div class="control-group">
+          <label>Master Volume <span class="value-display" id="volumeValue">100%</span></label>
+          <input type="range" class="slider" id="volumeSlider" min="0" max="100" value="100">
+        </div>
+        <div class="audio-controls">
+          <input type="file" id="musicInput" accept="audio/*">
+          <button class="btn" id="loadMusicBtn">🎵 Add Background Music</button>
+          <button class="btn" id="syncBtn">🎼 Sync Audio</button>
+          <button class="btn" id="stopAudioBtn">⏹ Stop All Audio</button>
+          <button class="btn" id="muteVideoBtn">🔇 Mute Video</button>
+          <button class="btn" id="muteMusicBtn">🔇 Mute Music</button>
+        </div>
+      </div>
+
+      <!-- Export Panel -->
+      <div class="panel" id="exportPanel">
+        <h3>Export</h3>
+        <button class="btn export" id="exportBtn">🎬 Export Video</button>
+        <button class="btn" id="resetBtn">🔄 Reset All</button>
+        <button class="btn" id="newBtn">📁 Load New Video</button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <div class="upload-section" id="uploadSection">
+        <div class="upload-box">
+          <h2>Upload Your Video</h2>
+          <p>Click here to select a video file</p>
+          <p style="font-size: 14px; opacity: 0.7; margin-bottom: 30px;">
+            <strong>Best formats:</strong> MP4 (H.264), WebM, OGG<br>
+            <strong>Also supports:</strong> AVI, MOV, MKV, 3GP • Max: 2GB<br>
+            <em>Having issues? Try converting to MP4 first</em>
+          </p>
+          <button class="upload-btn" type="button" id="uploadBtn">Choose Video File</button>
+          <input type="file" id="videoInput" class="file-input"
+            accept="video/mp4,video/webm,video/ogg,video/avi,video/mov,video/wmv,video/3gp,video/mkv">
+        </div>
+      </div>
+
+      <div class="video-section" id="videoSection">
+        <div class="video-container">
+          <video id="videoPlayer" class="video-player" controls preload="metadata"></video>
+        </div>
+        <div class="controls">
+          <button class="btn" id="playPauseBtn">▶ Play</button>
+          <button class="btn" id="resetVideoBtn">🔄 Reset Video</button>
+          <button class="btn" id="fullscreenBtn">⛶ Fullscreen</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Timeline Section -->
+    <section class="timeline-section">
+      <div class="timeline-controls">
+        <h3>📽 Timeline Editor</h3>
+        <div class="timeline-tools">
+          <button class="timeline-btn" id="cutToolBtn">✂ Cut</button>
+          <button class="timeline-btn" id="trimToolBtn">✄ Trim</button>
+          <button class="timeline-btn" id="splitToolBtn">⚡ Split</button>
+          <button class="timeline-btn" id="deleteToolBtn">🗑 Delete</button>
+          <button class="timeline-btn" id="copyToolBtn">📋 Copy</button>
+          <button class="timeline-btn" id="undoBtn">↶ Undo</button>
+          <button class="timeline-btn" id="redoBtn">↷ Redo</button>
+        </div>
+      </div>
+
+      <div class="timeline-container">
+        <div class="timeline-header">
+          <div class="timeline-time">
+            <span id="currentTimeDisplay">00:00</span> / <span id="totalTimeDisplay">00:00</span>
+          </div>
+          <div class="timeline-zoom">
+            <span>Zoom:</span>
+            <input type="range" class="slider" id="timelineZoom" min="1" max="10" value="5" style="width: 100px;">
+            <button class="timeline-btn" id="fitTimelineBtn">Fit</button>
+          </div>
+        </div>
+
+        <div class="timeline-ruler" id="timelineRuler">
+          <div class="playhead" id="playhead"></div>
+        </div>
+
+        <div class="timeline-tracks">
+          <div class="timeline-track">
+            <div class="track-label">🎬 Video</div>
+            <div class="track-content" id="videoTrack">
+              <!-- Video clips will be added here -->
+            </div>
+          </div>
+          
+          <div class="timeline-track">
+            <div class="track-label">🔊 Audio</div>
+            <div class="track-content" id="audioTrack">
+              <!-- Audio clips will be added here -->
+            </div>
+          </div>
+          
+          <div class="timeline-track">
+            <div class="track-label">🎵 Music</div>
+            <div class="track-content" id="musicTrack">
+              <!-- Music clips will be added here -->
+            </div>
+          </div>
+          
+          <div class="timeline-track">
+            <div class="track-label">✨ Effects</div>
+            <div class="track-content" id="effectsTrack">
+              <!-- Effect clips will be added here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div id="loadingText">Loading video...</div>
+  </div>
+  <div class="notification" id="notification"></div>
+
+  <!-- JavaScript will be inserted later -->
+</body>
+</html>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const uploadBox     = document.querySelector('.upload-box');
+    const uploadBtn     = document.getElementById('uploadBtn');
+    const videoInput    = document.getElementById('videoInput');
+    const uploadSection = document.getElementById('uploadSection');
+    const videoSection  = document.getElementById('videoSection');
+    const videoPlayer   = document.getElementById('videoPlayer');
+    const playPauseBtn  = document.getElementById('playPauseBtn');
+    const volumeSlider  = document.getElementById('volumeSlider');
+    const volumeValue   = document.getElementById('volumeValue');
+    const loading       = document.getElementById('loading');
+    const loadingText   = document.getElementById('loadingText');
+    const notification  = document.getElementById('notification');
+    const audioPanel    = document.getElementById('audioPanel');
+
+    let audioCtx;
+    let sourceNode;
+    let backgroundMusic;
+    let musicSource;
+
+    const showNotification = (msg, error=false) => {
+      notification.textContent = msg;
+      notification.className = 'notification show' + (error ? ' error' : '');
+      setTimeout(() => notification.classList.remove('show'), 3000);
+    };
+
+    const initAudio = () => {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    };
+
+    const connectVideoAudio = () => {
+      if (!audioCtx) return;
+      if (sourceNode) sourceNode.disconnect();
+      sourceNode = audioCtx.createMediaElementSource(videoPlayer);
+
+      const warm = audioCtx.createBiquadFilter();
+      warm.type = 'lowshelf';
+      warm.frequency.value = 500;
+      warm.gain.value = 3;
+
+      const open = audioCtx.createBiquadFilter();
+      open.type = 'highshelf';
+      open.frequency.value = 3000;
+      open.gain.value = 2;
+
+      const gain = audioCtx.createGain();
+      gain.gain.value = 1;
+
+      sourceNode.connect(warm);
+      warm.connect(open);
+      open.connect(gain);
+      gain.connect(audioCtx.destination);
+    };
+
+    const applyMastering = () => {
+      initAudio();
+      connectVideoAudio();
+      if (backgroundMusic) {
+        if (musicSource) musicSource.disconnect();
+        musicSource = audioCtx.createMediaElementSource(backgroundMusic);
+        const musicGain = audioCtx.createGain();
+        musicGain.gain.value = 0.8;
+        musicSource.connect(musicGain).connect(audioCtx.destination);
+      }
+      showNotification('AI mastering applied');
+    };
+
+    const masterBtn = document.createElement('button');
+    masterBtn.textContent = '🎚 AI Master Audio';
+    masterBtn.className = 'btn';
+    masterBtn.style.marginTop = '10px';
+    audioPanel.appendChild(masterBtn);
+    masterBtn.addEventListener('click', applyMastering);
+
+    const loadVideo = file => {
+      if (!file) return;
+      loading.style.display = 'block';
+      loadingText.textContent = 'Loading video...';
+      const url = URL.createObjectURL(file);
+      videoPlayer.src = url;
+      videoPlayer.onloadedmetadata = () => {
+        loading.style.display = 'none';
+        uploadSection.style.display = 'none';
+        videoSection.style.display = 'block';
+        showNotification('Video loaded');
+        initAudio();
+        connectVideoAudio();
+      };
+    };
+
+    uploadBox.addEventListener('click', () => videoInput.click());
+    uploadBtn.addEventListener('click', () => videoInput.click());
+    videoInput.addEventListener('change', e => loadVideo(e.target.files[0]));
+
+    playPauseBtn.addEventListener('click', () => {
+      if (videoPlayer.paused) {
+        videoPlayer.play();
+        if (backgroundMusic) backgroundMusic.play();
+        playPauseBtn.textContent = '⏸ Pause';
+      } else {
+        videoPlayer.pause();
+        if (backgroundMusic) backgroundMusic.pause();
+        playPauseBtn.textContent = '▶ Play';
+      }
+    });
+
+    volumeSlider.addEventListener('input', e => {
+      const vol = e.target.value / 100;
+      videoPlayer.volume = vol;
+      if (backgroundMusic) backgroundMusic.volume = vol;
+      volumeValue.textContent = e.target.value + '%';
+    });
+  });
+  </script>
+</body>
+</html>
