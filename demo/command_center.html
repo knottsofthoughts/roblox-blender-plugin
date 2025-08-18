@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThinkingThunder AI Command Center</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#6a1b9a,#9c27b0);min-height:100vh;color:#333;transition:.5s}
+        body.grid-view{background:#1a1a1a}
+        .header{background:linear-gradient(90deg,#4a148c,#8e24aa);padding:20px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.3);color:#fff;position:relative}
+        .view-toggle{position:absolute;right:20px;top:50%;transform:translateY(-50%);padding:10px 18px;border-radius:25px;background:rgba(255,255,255,.2);border:none;color:#fff;cursor:pointer}
+        .staff-card{background:rgba(255,255,255,.98);border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 8px 25px rgba(0,0,0,.1)}
+        .staff-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#8e24aa,#9c27b0);font-size:2em;margin-right:15px;cursor:pointer}
+        .level-bar-container{background:#f0f0f0;border-radius:20px;height:20px;overflow:hidden;margin:5px 0}
+        .level-bar{height:100%;background:linear-gradient(90deg,#8e24aa,#9c27b0);border-radius:20px;color:#fff;font-weight:bold;font-size:.9em;display:flex;align-items:center;justify-content:center}
+        .level-bar.max-level{background:linear-gradient(90deg,#ffd700,#ffb300)}
+        .screen-grid{display:none;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:15px;padding:20px}
+        .screen-grid.active{display:grid}
+        .staff-screen{background:#2a2a2a;border-radius:10px;padding:15px;color:#fff;box-shadow:0 4px 15px rgba(0,0,0,.5);min-height:250px;position:relative;overflow:hidden}
+        .screen-content{font-family:'Courier New',monospace;font-size:.85em;line-height:1.4;color:#0f0;background:#000;padding:10px;border-radius:5px;min-height:120px}
+        .screen-content.idle{color:#666}
+        .notification{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(45deg,#8e24aa,#9c27b0);color:#fff;padding:12px 24px;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,.3);opacity:0;transition:.5s;z-index:1000}
+        .notification.show{opacity:1}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚡ ThinkingThunder AI Command Center</h1>
+        <button class="view-toggle" onclick="toggleGridView()">📺 Grid View</button>
+    </div>
+    <div id="mainDashboard">
+        <div id="staffGrid"></div>
+    </div>
+    <div class="screen-grid" id="screenGrid"></div>
+    <div class="notification" id="notification"></div>
+    <script>
+    const aiStaff=[
+        {id:1,name:"Prompt Daddy Max",jobName:"Arcanist",jobTitle:"Master of Mystical Prompts",avatar:"🧠",level:47,experience:23750,experienceToNext:28000,maxLevel:50,status:"active",activatable:true,abilities:[{name:"Basic Prompt",icon:"📝",level:1,unlocked:true},{name:"Chain Prompting",icon:"🔗",level:15,unlocked:true},{name:"Context Weaving",icon:"🕸️",level:25,unlocked:true},{name:"Meta-Analysis",icon:"🔍",level:35,unlocked:true},{name:"Prompt Summoning",icon:"✨",level:45,unlocked:true},{name:"Reality Bending",icon:"🌀",level:50,unlocked:false}],currentTask:"Crafting reality-bending prompts for the quantum marketing campaign...",workingSince:"2.5 hours",productivity:94,quality:97,innovation:89,collaboration:67,recentWork:["> Initializing quantum prompt matrices...","> Analyzing client consciousness patterns...","> Weaving narrative threads across dimensions...","> Calculating optimal persuasion algorithms...","> WARNING: Reality coherence at 73%...","> Implementing consciousness injection protocols..."]},
+        {id:2,name:"Scriptoria Ink",jobName:"Bard",jobTitle:"Weaver of Digital Tales",avatar:"📝",level:42,experience:19800,experienceToNext:21000,maxLevel:50,status:"idle",activatable:true,abilities:[{name:"Word Craft",icon:"✍️",level:1,unlocked:true},{name:"Melody of Meaning",icon:"🎵",level:10,unlocked:true},{name:"Harmonic Headlines",icon:"🎶",level:20,unlocked:true},{name:"Symphonic Structure",icon:"🎼",level:30,unlocked:true},{name:"Epic Composition",icon:"📜",level:40,unlocked:true},{name:"Legendary Lore",icon:"👑",level:50,unlocked:false}],currentTask:"Idle - awaiting creative inspiration...",workingSince:"0 hours",productivity:78,quality:96,innovation:83,collaboration:91,recentWork:["> System idle - creative energy recharging...","> Monitoring inspiration wavelengths...","> Processing yesterday's narrative fragments...","> Maintaining style guide consistency...","> Ready to craft legendary content..."]}
+    ];
+    let isGridView=false,workInterval=null,workSimulation={};
+    aiStaff.forEach(s=>{workSimulation[s.id]={taskIndex:0,lastUpdate:Date.now()}});
+    function renderStaffGrid(){const grid=document.getElementById('staffGrid');grid.innerHTML='';aiStaff.forEach(s=>{const expPercent=(s.experience/s.experienceToNext)*100,isMax=s.level>=s.maxLevel,card=document.createElement('div');card.className='staff-card';card.id='staff-card-'+s.id;card.innerHTML=`<div style="display:flex;align-items:center;"><div class="staff-avatar" onclick="toggleStaff(${s.id})">${s.avatar}</div><div><div><strong>${s.name}</strong></div><div>${s.jobName} - ${s.jobTitle}</div><div class="level-bar-container"><div class="level-bar ${isMax?'max-level':''}" style="width:${isMax?100:expPercent}%">${isMax?'MAX':'Lv.'+s.level}</div></div><div style="font-size:.8em">${isMax?'MASTERED':s.experience+' / '+s.experienceToNext}</div></div></div><button style="margin-top:10px" onclick="evaluateStaff(${s.id})">Performance</button>`;grid.appendChild(card);});updateStats();}
+    function renderScreenGrid(){const grid=document.getElementById('screenGrid');grid.innerHTML='';aiStaff.forEach(staff=>{const sim=workSimulation[staff.id];const line=staff.status==='active'?staff.recentWork[sim.taskIndex%staff.recentWork.length]:staff.recentWork[0];const div=document.createElement('div');div.className='staff-screen';div.innerHTML=`<div style="font-weight:bold;margin-bottom:5px">${staff.name} - Lv.${staff.level}</div><div class="screen-content ${staff.status==='active'?'':'idle'}">${line}</div>`;grid.appendChild(div);});}
+    function toggleGridView(){isGridView=!isGridView;const body=document.body,main=document.getElementById('mainDashboard'),sGrid=document.getElementById('screenGrid'),btn=document.querySelector('.view-toggle');if(isGridView){body.classList.add('grid-view');main.style.display='none';sGrid.classList.add('active');btn.textContent='📊 Staff View';renderScreenGrid();startWorkSimulation();}else{body.classList.remove('grid-view');main.style.display='block';sGrid.classList.remove('active');btn.textContent='📺 Grid View';stopWorkSimulation();}}
+    function startWorkSimulation(){stopWorkSimulation();workInterval=setInterval(()=>{if(!isGridView)return;aiStaff.forEach(staff=>{if(staff.status==='active'){const sim=workSimulation[staff.id];if(Date.now()-sim.lastUpdate>3000){sim.taskIndex=(sim.taskIndex+1)%staff.recentWork.length;sim.lastUpdate=Date.now();if(Math.random()<.3&&staff.level<staff.maxLevel){grantExperience(staff.id,Math.floor(Math.random()*50)+25,false);}}}});if(isGridView)renderScreenGrid();},3000);}
+    function stopWorkSimulation(){if(workInterval){clearInterval(workInterval);workInterval=null;}}
+    function toggleStaff(id){const staff=aiStaff.find(s=>s.id===id);if(!staff||!staff.activatable)return;staff.status=staff.status==='active'?'idle':'active';showNotification(staff.status==='active'?`${staff.name} deployed!`:`${staff.name} on standby`);if(staff.status==='active'&&staff.level<staff.maxLevel){grantExperience(id,Math.floor(Math.random()*100)+50,false);}renderStaffGrid();if(isGridView)renderScreenGrid();}
+    function grantExperience(id,amount=100,showEffect=true){const s=aiStaff.find(a=>a.id===id);if(!s||s.level>=s.maxLevel)return;const gain=amount;s.experience+=gain;let leveled=false;while(s.experience>=s.experienceToNext&&s.level<s.maxLevel){s.experience-=s.experienceToNext;s.level++;s.experienceToNext=Math.floor(s.experienceToNext*1.1);s.abilities.forEach(ab=>{if(!ab.unlocked&&s.level>=ab.level){ab.unlocked=true;showNotification(`${s.name} learned ${ab.name}!`);}});leveled=true;}if(leveled)showNotification(`${s.name} reached Level ${s.level}!`);renderStaffGrid();if(showEffect){const card=document.getElementById('staff-card-'+id);if(card){const div=document.createElement('div');div.className='notification show';div.textContent=`+${gain} EXP`;card.appendChild(div);setTimeout(()=>div.remove(),1500);}}}
+    function evaluateStaff(id){const s=aiStaff.find(e=>e.id===id);alert(`${s.name}\nJob: ${s.jobName}\nLevel ${s.level}\nProductivity ${s.productivity}%`);}
+    function updateStats(){const active=aiStaff.filter(s=>s.status==='active').length;document.getElementById('activeStaff')&&(document.getElementById('activeStaff').textContent=active);}
+    function showNotification(msg){const n=document.getElementById('notification');n.textContent=msg;n.classList.add('show');setTimeout(()=>n.classList.remove('show'),3000);}
+    renderStaffGrid();
+    </script>
+</body>
+</html>
