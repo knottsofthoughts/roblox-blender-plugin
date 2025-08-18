@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ThinkingThunder AI Staff Command Center</title>
+    <style>
+        body{font-family:sans-serif;margin:0;padding:0;background:#fafafa;color:#333}
+        .header{background:#8e24aa;color:#fff;padding:20px;text-align:center}
+        .header button{float:right;margin-top:-10px;padding:8px 12px;border:0;border-radius:4px;background:#673ab7;color:#fff}
+        #staffGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:20px;padding:20px}
+        .staff-card{background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);padding:15px}
+        .staff-header{display:flex;align-items:center;margin-bottom:10px}
+        .staff-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2em;margin-right:10px;cursor:pointer}
+        .level-bar{height:8px;border-radius:4px;background:#ccc;margin-top:6px;overflow:hidden}
+        .level-bar>div{background:#8e24aa;height:100%}
+        .staff-actions{margin-top:10px;display:flex;gap:10px}
+        .staff-actions button{flex:1;padding:6px;border:0;border-radius:4px;cursor:pointer}
+        .screen-grid{display:none;padding:20px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;background:#111;color:#0f0}
+        .screen-grid.active{display:grid}
+        .staff-screen{background:#222;color:#0f0;padding:10px;border-radius:6px;min-height:200px}
+        .notification{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#8e24aa;color:#fff;padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .4s}
+        .notification.show{opacity:1}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚡ ThinkingThunder AI Command Center</h1>
+        <button onclick="toggleGridView()" id="viewToggle">📺 Grid View</button>
+    </div>
+
+    <div id="staffGrid"></div>
+    <div id="screenGrid" class="screen-grid"></div>
+    <div id="notification" class="notification"></div>
+
+<script>
+const UPDATE_INTERVAL = 3000;
+const aiStaff = [
+    {id:1,name:"Prompt Daddy Max",avatar:"🧠",level:47,status:"active",recentWork:["> Loading..."]},
+    {id:2,name:"Scriptoria Ink",avatar:"📝",level:42,status:"idle",recentWork:["> Idle..."]}
+];
+let gridView = false;
+let workTimer = null;
+
+function byId(id){return document.getElementById(id)}
+
+function renderStaff(){
+    const grid = byId('staffGrid');
+    grid.innerHTML='';
+    aiStaff.forEach(s=>{
+        const card=document.createElement('div');
+        card.className='staff-card';
+        const percent= (s.level/50)*100;
+        card.innerHTML=`
+            <div class='staff-header'>
+                <div class='staff-avatar' onclick='toggleStaff(${s.id})'>${s.avatar}</div>
+                <div>
+                    <div>${s.name} (Lv.${s.level})</div>
+                    <div class='level-bar'><div style='width:${percent}%'></div></div>
+                </div>
+            </div>
+            <div class='staff-actions'>
+                <button onclick='toggleStaff(${s.id})'>${s.status==='active'?"Stand Down":"Deploy"}</button>
+            </div>`;
+        grid.appendChild(card);
+    });
+}
+
+function renderScreens(){
+    const grid = byId('screenGrid');
+    grid.innerHTML='';
+    aiStaff.forEach(s=>{
+        const div=document.createElement('div');
+        div.className='staff-screen';
+        div.textContent=s.recentWork.join('\n');
+        grid.appendChild(div);
+    });
+}
+
+function toggleGridView(){
+    gridView=!gridView;
+    byId('screenGrid').classList.toggle('active',gridView);
+    byId('viewToggle').textContent=gridView?'📊 Staff View':'📺 Grid View';
+    if(gridView){startSimulation();renderScreens();}
+    else{stopSimulation();}
+}
+
+function startSimulation(){
+    if(workTimer) return;
+    workTimer=setInterval(()=>{
+        aiStaff.forEach(s=>{
+            if(s.status==='active'){
+                s.recentWork.push(`> Work line ${Date.now()}`);
+                if(s.recentWork.length>5) s.recentWork.shift();
+            }
+        });
+        if(gridView) renderScreens();
+    },UPDATE_INTERVAL);
+}
+
+function stopSimulation(){
+    clearInterval(workTimer);
+    workTimer=null;
+}
+
+function toggleStaff(id){
+    const s=aiStaff.find(x=>x.id===id);
+    if(!s) return;
+    s.status=s.status==='active'?'idle':'active';
+    notify(`${s.name} is now ${s.status}`);
+    renderStaff();
+}
+
+function notify(msg){
+    const n=byId('notification');
+    n.textContent=msg;
+    n.classList.add('show');
+    setTimeout(()=>n.classList.remove('show'),2000);
+}
+
+renderStaff();
+</script>
+</body>
+</html>
