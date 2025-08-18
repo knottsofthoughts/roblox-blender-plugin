@@ -19,20 +19,24 @@
 # SPDX-License-Identifier: MIT
 
 """
-    Some API responses contain a string body, and others contain a json
-    body with a Message entry. This returns the message, regardless of either
-    response type.
+Some API responses contain a string body, and others contain a json
+body with a Message entry. This returns the message, regardless of either
+response type.
 """
 
 import json
 
 
 def extract_exception_message(exception):
+    """Return a human readable message from an ApiException."""
+
     message = exception.body or exception.reason
     try:
-        body = json.loads(exception.body)
-        if body["message"]:
-            message = body["message"]
+        body_str = exception.body
+        if isinstance(body_str, (bytes, bytearray)):
+            body_str = body_str.decode()
+        body = json.loads(body_str)
+        message = body.get("message") or body.get("Message") or message
     except Exception:
         pass
 
