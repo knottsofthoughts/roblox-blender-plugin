@@ -111,3 +111,12 @@ Once you've created your tag, push it to the repository with
 ## PLUGIN VERSIONING
 The plugin version is automatically updated by a Github Actions workflow to correspond with the committed version tag name (as described in [Creating a Release](#creating-a-release)).
 The version doesn't get committed to the codebase, so if you run the plugin locally instead of using a release, your plugin will just show the default version number that exists in the codebase.
+
+## WEB EDITOR PROTOTYPE
+
+This repository also contains a small experimental web-based video editor. The
+editor is located at [web_editor/index.html](web_editor/index.html). It can be
+opened directly in a modern web browser and offers a timeline interface along
+with an **AI Master Audio** button that applies a simple WebAudio filter chain
+for a warmer sound. The web editor is independent from the Blender plugin and
+is provided as a prototype only.
